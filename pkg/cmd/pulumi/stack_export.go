@@ -90,6 +90,11 @@ func newStackExportCmd() *cobra.Command {
 			}
 
 			if showSecrets {
+				_, err := getStackSecretsManager(s)
+				if err != nil {
+					return errors.Wrap(err, "getting secrets manager")
+				}
+
 				snap, err := stack.DeserializeUntypedDeployment(deployment, stack.DefaultSecretsProvider)
 				if err != nil {
 					return checkDeploymentVersionError(err, stackName)

@@ -2,7 +2,10 @@ CHANGELOG
 =========
 
 ## HEAD (Unreleased)
-_(none)_
+
+- [cli] Ensure the user has the correct access to the secrets manager before using it as part of 
+  `pulumi stack export --show-secrets`.
+  [#6215](https://github.com/pulumi/pulumi/pull/6210)
 
 ## 2.19.0 (2021-01-27)
 
