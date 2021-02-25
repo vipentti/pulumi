@@ -177,8 +177,7 @@ class Stack:
     def select(cls, stack_name: str, workspace: Workspace) -> 'Stack':
         """
         Selects stack using the given workspace, and stack name.
-        It returns an error if the given Stack does not exist. All LocalWorkspace operations will call `select` before
-        running.
+        It returns an error if the given Stack does not exist.
 
         :param stack_name: The name identifying the Stack
         :param workspace: The Workspace the Stack was created from.
@@ -262,7 +261,6 @@ class Stack:
         args = ["up", "--yes", "--skip-preview"]
         args.extend(extra_args)
 
-        self.workspace.select_stack(self.name)
         kind = ExecKind.LOCAL.value
         on_exit = None
 
@@ -322,7 +320,6 @@ class Stack:
         args = ["preview"]
         args.extend(extra_args)
 
-        self.workspace.select_stack(self.name)
         kind = ExecKind.LOCAL.value
         on_exit = None
 
@@ -371,7 +368,6 @@ class Stack:
         args = ["refresh", "--yes", "--skip-preview"]
         args.extend(extra_args)
 
-        self.workspace.select_stack(self.name)
         refresh_result = self._run_pulumi_cmd_sync(args, on_output)
         summary = self.info()
         assert(summary is not None)
@@ -398,7 +394,6 @@ class Stack:
         args = ["destroy", "--yes", "--skip-preview"]
         args.extend(extra_args)
 
-        self.workspace.select_stack(self.name)
         destroy_result = self._run_pulumi_cmd_sync(args, on_output)
         summary = self.info()
         assert(summary is not None)
@@ -464,8 +459,6 @@ class Stack:
 
         :returns: OutputMap
         """
-        self.workspace.select_stack(self.name)
-
         masked_result = self._run_pulumi_cmd_sync(["stack", "output", "--json"])
         plaintext_result = self._run_pulumi_cmd_sync(["stack", "output", "--json", "--show-secrets"])
         masked_outputs = json.loads(masked_result.stdout)
@@ -530,7 +523,6 @@ class Stack:
         if a resource operation was pending when the update was canceled.
         This command is not supported for local backends.
         """
-        self.workspace.select_stack(self.name)
         self._run_pulumi_cmd_sync(["cancel", "--yes"])
 
     def export_stack(self) -> Deployment:
@@ -559,7 +551,7 @@ class Stack:
 
         additional_args = self.workspace.serialize_args_for_op(self.name)
         args.extend(additional_args)
-
+        args.extend(["--stack", self.name])
         result = _run_pulumi_cmd(args, self.workspace.work_dir, envs, on_output)
         self.workspace.post_command_callback(self.name)
         return result
