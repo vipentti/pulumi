@@ -16,6 +16,7 @@ package hcl2
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/blang/semver"
@@ -188,6 +189,31 @@ func (b *binder) schemaTypeToTypeImpl(src schema.Type, seen map[schema.Type]mode
 		}
 		return t
 	case *schema.UnionType:
+		if src.Discriminator != "" {
+			objTypes := map[string]*schema.ObjectType{}
+			for _, el := range src.ElementTypes {
+				if obj, ok := el.(*schema.ObjectType); ok {
+					objTypes[obj.Token] = el.(*schema.ObjectType)
+				}
+			}
+			mapping := map[string]*model.ObjectType{}
+			for key, mv := range src.Mapping {
+				tok := strings.TrimPrefix(mv, "#/types/")
+				obj, ok := objTypes[tok]
+				if !ok {
+					contract.Failf("Type %q not found for a discriminated union case %q", tok, key)
+				}
+				delete(objTypes, tok)
+				mapping[key] = b.schemaTypeToTypeImpl(obj, seen).(*model.ObjectType)
+			}
+			for tok, obj := range objTypes {
+				components := strings.Split(tok, ":")
+				contract.Assertf(len(components) == 3, "invalid token %q", tok)
+				typeName := components[2]
+				mapping[typeName] = b.schemaTypeToTypeImpl(obj, seen).(*model.ObjectType)
+			}
+			return model.NewDiscriminatedUnionType(src.Discriminator, mapping)
+		}
 		types := make([]model.Type, len(src.ElementTypes))
 		for i, src := range src.ElementTypes {
 			types[i] = b.schemaTypeToTypeImpl(src, seen)

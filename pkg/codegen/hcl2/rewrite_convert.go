@@ -90,6 +90,9 @@ func rewriteConversions(x model.Expression, to model.Type) (model.Expression, bo
 	case *model.IndexExpression:
 		x.Key, _ = rewriteConversions(x.Key, x.KeyType())
 	case *model.ObjectConsExpression:
+		if v := resolveDiscriminatedUnions(to, x); v != nil {
+			to = v
+		}
 		for i := range x.Items {
 			item := &x.Items[i]
 
@@ -138,6 +141,47 @@ func rewriteConversions(x model.Expression, to model.Type) (model.Expression, bo
 
 	// Otherwise, wrap the expression in a call to __convert.
 	return NewConvertCall(x, to), true
+}
+
+// resolveDiscriminatedUnions reduces discriminated unions of object types to the type that matches
+// the shape of the given object cons expression. A given object expression would only match a single
+// case of the union.
+func resolveDiscriminatedUnions(modelType model.Type, x *model.ObjectConsExpression) model.Type {
+	switch typ := modelType.(type) {
+	case *model.DiscriminatedUnionType:
+		for _, item := range x.Items {
+			if name, ok := item.Key.(*model.LiteralValueExpression); ok {
+				if name.Value.AsString() == typ.Discriminator {
+					if lit, ok := item.Value.(*model.TemplateExpression); ok {
+						value := lit.Parts[0].(*model.LiteralValueExpression).Value.AsString()
+						return typ.Mapping[value]
+					}
+				}
+			}
+		}
+		return modelType
+	case *model.OutputType:
+		if el := resolveDiscriminatedUnions(typ.ElementType, x); el != nil {
+			return model.NewOutputType(el)
+		}
+		return nil
+	case *model.UnionType:
+		var types []model.Type
+		for _, el := range typ.ElementTypes {
+			if elt := resolveDiscriminatedUnions(el, x); elt != nil {
+				types = append(types, elt)
+			}
+		}
+		switch len(types) {
+		case 0:
+			return nil
+		case 1:
+			return types[0]
+		default:
+			return model.NewUnionType(types...)
+		}
+	}
+	return modelType
 }
 
 // RewriteConversions wraps automatic conversions indicated by the HCL2 spec and conversions to schema-annotated types
