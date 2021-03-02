@@ -11,3 +11,5 @@
 
 ### Bug Fixes
 
+- [sdk/nodejs] Fix `Construct` to wait for child resources of a multi-lang components to be created.
+  [#6452](https://github.com/pulumi/pulumi/pull/6452)
