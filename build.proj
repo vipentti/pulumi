@@ -56,14 +56,14 @@
   </Target>
 
   <Target Name="DotNetBuild">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language dotnet" ConsoleToMSBuild="true">
         <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <PropertyGroup>
       <VersionPart>$(Version.Split("-")[0])</VersionPart>
       <VersionPrefix>$(VersionPart.Replace("v",""))</VersionPrefix>
     </PropertyGroup>
-    <Exec Command="dotnet build dotnet.sln /p:VersionPrefix=$(VersionPrefix) /p:VersionSuffix=preview"
+    <Exec Command="dotnet build dotnet.sln /p:Version=$(Version)"
           WorkingDirectory="$(DotNetSdkDirectory)" />
     <ItemGroup>
       <DotNetPackagesToBuild Include="github.com/pulumi/pulumi/sdk/v2/dotnet/cmd/pulumi-language-dotnet" />
@@ -76,7 +76,7 @@
     <ItemGroup>
       <DotNetPackagesToBuild Include="github.com/pulumi/pulumi/sdk/v2/dotnet/cmd/pulumi-language-dotnet" />
     </ItemGroup>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language dotnet" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <Exec Command="go install -ldflags &quot;-X github.com/pulumi/pulumi/sdk/v2/go/common/version.Version=$(Version)&quot; %(DotNetPackagesToBuild.Identity)"
@@ -99,7 +99,7 @@
   </Target>
 
   <Target Name="GoBuild">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <ItemGroup>
@@ -113,7 +113,7 @@
     <ItemGroup>
       <GoPackagesToBuild Include="github.com/pulumi/pulumi/sdk/v2/go/pulumi-language-go" />
     </ItemGroup>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <Exec Command="go install -ldflags &quot;-X github.com/pulumi/pulumi/sdk/v2/go/common/version.Version=$(Version)&quot; %(GoPackagesToBuild.Identity)"
@@ -132,7 +132,7 @@
   </Target>
 
   <Target Name="NodeJSBuild">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language javascript" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <Exec Command="yarn run tsc" WorkingDirectory="$(NodeJSSdkDirectory)" />
@@ -167,7 +167,7 @@
     <ItemGroup>
       <NodeJSPackagesToBuild Include="github.com/pulumi/pulumi/sdk/nodejs/cmd/pulumi-language-nodejs" />
     </ItemGroup>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language javascript" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <Exec Command="go install -ldflags &quot;-X github.com/pulumi/pulumi/pkg/v2/version.Version=$(Version)&quot; %(NodeJSPackagesToBuild.Identity)"
@@ -205,7 +205,7 @@
   </Target>
 
   <Target Name="PythonBuild">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language python" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <ItemGroup>
@@ -247,7 +247,7 @@
     <ItemGroup>
       <PythonPackagesToBuild Include="github.com/pulumi/pulumi/sdk/v2/python/cmd/pulumi-language-python" />
     </ItemGroup>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version --language python" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
     <Exec Command="go install -ldflags &quot;-X github.com/pulumi/pulumi/sdk/v2/go/common/version.Version=$(Version)&quot; %(PythonPackagesToBuild.Identity)"
@@ -261,7 +261,7 @@
       <PulumiPackagesToBuild Include="github.com/pulumi/pulumi/pkg/v2/cmd/pulumi" />
     </ItemGroup>
 
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\scripts\get-version.cmd&quot;" ConsoleToMSBuild="true">
+    <Exec Command="pulumictl get version" ConsoleToMSBuild="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="Version" />
     </Exec>
 
