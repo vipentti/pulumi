@@ -318,6 +318,11 @@ func newConfigRmCmd(stack *string) *cobra.Command {
 				return err
 			}
 
+			err = ps.FileAST.DeleteConfig("config", key.String())
+			if err != nil {
+				return err
+			}
+
 			return saveProjectStack(s, ps)
 		}),
 	}
@@ -538,6 +543,11 @@ func newConfigSetCmd(stack *string) *cobra.Command {
 			}
 
 			err = ps.Config.Set(key, v, path)
+			if err != nil {
+				return err
+			}
+
+			err = ps.FileAST.SetConfig("config", key.String(), v.EncryptedValue(), 3)
 			if err != nil {
 				return err
 			}

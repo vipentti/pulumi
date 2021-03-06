@@ -11,6 +11,9 @@
 
 - Updating Pulumi to use Go 1.16
   [#6470](https://github.com/pulumi/pulumi/pull/6470)
+  
+- Support full fidelity YAML round-tripping
+  [#6489](https://github.com/pulumi/pulumi/pull/6489)
 
 ### Bug Fixes
 
