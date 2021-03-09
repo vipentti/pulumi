@@ -33,7 +33,6 @@ type PreviewResult struct {
   StdOut        string
   StdErr        string
   ChangeSummary map[string]int
-  EventLog      []events.EngineEvent
 }
 ```
 
