@@ -27,43 +27,31 @@ import (
 )
 
 type FileAST struct {
-	AST *ast.File
+	ast *ast.File
 }
 
-func (file *FileAST) Parse(yamlBytes []byte) error {
+func NewFileAST(yamlBytes []byte) (*FileAST, error) {
 	fileAST, err := parser.ParseBytes(yamlBytes, parser.ParseComments)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse YAML file")
+		return nil, errors.Wrap(err, "failed to parse YAML file")
 	}
 
-	file.AST = fileAST
-	return nil
+	return &FileAST{ast: fileAST}, nil
 }
 
-func (file *FileAST) Marshal() []byte {
+func (f *FileAST) Marshal() []byte {
 	out := bytes.Buffer{}
 	var p printer.Printer
-	for _, d := range file.AST.Docs {
+	for _, d := range f.ast.Docs {
 		out.Write(p.PrintNode(d))
 	}
 
 	return out.Bytes()
 }
 
-func walk(node *ast.MappingNode, key string) (*ast.MappingNode, error) {
-	// TODO: handle slice key
-
-	for _, v := range node.Values {
-		if v.Key.String() == key {
-			return v.Value.(*ast.MappingNode), nil
-		}
-	}
-	return nil, fmt.Errorf("config key not found: %q", key)
-}
-
-func (file *FileAST) SetConfig(keyPath, key, value string, column int) error {
+func (f *FileAST) SetConfig(keyPath, key, value string, column int) error {
 	// TODO: probably want to handle this differently
-	if len(file.AST.Docs) < 1 {
+	if len(f.ast.Docs) < 1 {
 		return nil
 	}
 
@@ -74,7 +62,7 @@ func (file *FileAST) SetConfig(keyPath, key, value string, column int) error {
 		paths = strings.Split(keyPath, ".")
 	}
 
-	node := file.AST.Docs[0].Body.(*ast.MappingNode)
+	node := f.ast.Docs[0].Body.(*ast.MappingNode)
 	var err error
 	for _, path := range paths {
 		node, err = walk(node, path)
@@ -96,9 +84,9 @@ func (file *FileAST) SetConfig(keyPath, key, value string, column int) error {
 	return nil
 }
 
-func (file *FileAST) DeleteConfig(keyPath string, key string) error {
+func (f *FileAST) DeleteConfig(keyPath string, key string) error {
 	// TODO: probably want to handle this differently
-	if len(file.AST.Docs) < 1 {
+	if len(f.ast.Docs) < 1 {
 		return nil
 	}
 
@@ -107,7 +95,7 @@ func (file *FileAST) DeleteConfig(keyPath string, key string) error {
 		paths = strings.Split(keyPath, ".")
 	}
 
-	node := file.AST.Docs[0].Body.(*ast.MappingNode)
+	node := f.ast.Docs[0].Body.(*ast.MappingNode)
 	var err error
 	for _, path := range paths {
 		node, err = walk(node, path)
@@ -123,6 +111,17 @@ func (file *FileAST) DeleteConfig(keyPath string, key string) error {
 		}
 	}
 	return nil
+}
+
+func walk(node *ast.MappingNode, key string) (*ast.MappingNode, error) {
+	// TODO: handle slice key
+
+	for _, v := range node.Values {
+		if v.Key.String() == key {
+			return v.Value.(*ast.MappingNode), nil
+		}
+	}
+	return nil, fmt.Errorf("config key not found: %q", key)
 }
 
 func newMappingValueNode(k, v string, col int) *ast.MappingValueNode {

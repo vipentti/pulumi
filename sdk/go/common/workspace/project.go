@@ -91,7 +91,7 @@ type Project struct {
 	// Backend is an optional backend configuration
 	Backend *ProjectBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
 
-	FileAST encoding.FileAST
+	FileAST *encoding.FileAST
 }
 
 func (proj *Project) Validate() error {
@@ -180,15 +180,16 @@ type ProjectStack struct {
 	// passphrase-based secrets providers.
 	EncryptionSalt string `json:"encryptionsalt,omitempty" yaml:"encryptionsalt,omitempty"`
 	// Config is an optional config bag.
-	Config  config.Map `json:"config,omitempty" yaml:"config,omitempty"`
-	FileAST encoding.FileAST
+	Config config.Map `json:"config,omitempty" yaml:"config,omitempty"`
+
+	FileAST *encoding.FileAST
 }
 
 // Save writes a project definition to a file.
 func (ps *ProjectStack) Save(path string) error {
 	contract.Require(path != "", "path")
 	contract.Require(ps != nil, "ps")
-	return saveAST(path, &ps.FileAST, true /*mkDirAll*/)
+	return saveAST(path, ps.FileAST, true /*mkDirAll*/)
 }
 
 type ProjectRuntimeInfo struct {
@@ -297,7 +298,8 @@ func LoadProject(path string) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = proj.FileAST.Parse(b)
+
+	proj.FileAST, err = encoding.NewFileAST(b)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +392,7 @@ func LoadProjectStack(path string) (*ProjectStack, error) {
 		return nil, err
 	}
 
-	err = ps.FileAST.Parse(b)
+	ps.FileAST, err = encoding.NewFileAST(b)
 	if err != nil {
 		return nil, err
 	}
